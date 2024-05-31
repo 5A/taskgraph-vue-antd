@@ -130,7 +130,7 @@ function isEverythingEncrypted(api_origin: string): EncryptionStatus {
     api_safe = true;
   }
   let app_safe = false;
-  if (location.protocol === "https") {
+  if (location.protocol === "https:") {
     app_safe = true;
   }
   if (api_safe && app_safe) return EncryptionStatus.Everywhere;
