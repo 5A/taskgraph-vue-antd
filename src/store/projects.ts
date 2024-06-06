@@ -81,6 +81,7 @@ export interface ProjectWorkspaceInputState {
   task_toolbox_location_select: string
   add_dependency_selected_nodes: Array<string>
   snooze_task_until: Dayjs | null
+  snooze_task_reason: string
   new_issue_title: string
   new_issue_description: string
 }
@@ -107,6 +108,7 @@ export const useProjectOperationInputStore = defineStore(
       task_toolbox_location_select: 'sub',
       add_dependency_selected_nodes: [],
       snooze_task_until: null,
+      snooze_task_reason: '',
       new_issue_title: '',
       new_issue_description: ''
     })
@@ -146,6 +148,7 @@ export interface TaskGraphTaskMetadataItem {
   detail: string | null
   status: string | null
   wake_after: number | null
+  snooze_reason: string | null
   remind_after: number | null
   issues: Record<string, TaskGraphIssue> | null
 }

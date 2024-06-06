@@ -24,17 +24,48 @@
             <ProjectOutlined />
             <span>Projects</span>
           </template>
-          <a-menu-item
-            v-for="(item, uuid) in projectListStore.projectListState.projects"
-            :key="uuid"
-          >
-            <ExperimentOutlined />
-            <span>
-              <router-link :to="{ name: 'project_id', params: { project_uuid: uuid } }">
-                {{ item.name }}
-              </router-link>
-            </span>
-          </a-menu-item>
+          <template v-for="(item, uuid) in projectListStore.projectListState.projects" :key="uuid">
+            <a-menu-item v-if="item.status == 'Active'" :key="uuid">
+              <ExperimentOutlined />
+              <span>
+                <router-link :to="{ name: 'project_id', params: { project_uuid: uuid } }">
+                  {{ item.name }}
+                </router-link>
+              </span>
+            </a-menu-item>
+          </template>
+        </a-sub-menu>
+        <a-sub-menu key="projects-snoozed">
+          <template #title>
+            <FieldTimeOutlined />
+            <span>Snoozed</span>
+          </template>
+          <template v-for="(item, uuid) in projectListStore.projectListState.projects" :key="uuid">
+            <a-menu-item v-if="item.status == 'Snoozed'" :key="uuid">
+              <ExperimentOutlined />
+              <span>
+                <router-link :to="{ name: 'project_id', params: { project_uuid: uuid } }">
+                  {{ item.name }}
+                </router-link>
+              </span>
+            </a-menu-item>
+          </template>
+        </a-sub-menu>
+        <a-sub-menu key="projects-finished">
+          <template #title>
+            <FileDoneOutlined />
+            <span>Finished</span>
+          </template>
+          <template v-for="(item, uuid) in projectListStore.projectListState.projects" :key="uuid">
+            <a-menu-item v-if="item.status == 'Done'" :key="uuid">
+              <ExperimentOutlined />
+              <span>
+                <router-link :to="{ name: 'project_id', params: { project_uuid: uuid } }">
+                  {{ item.name }}
+                </router-link>
+              </span>
+            </a-menu-item>
+          </template>
         </a-sub-menu>
       </a-menu>
     </a-layout-sider>
@@ -49,7 +80,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ProjectOutlined, ExperimentOutlined, AppstoreAddOutlined } from '@ant-design/icons-vue'
+import {
+  ProjectOutlined,
+  ExperimentOutlined,
+  AppstoreAddOutlined,
+  FileDoneOutlined,
+  FieldTimeOutlined
+} from '@ant-design/icons-vue'
 
 import { useProjectListStore } from '@/store/projects'
 const projectListStore = useProjectListStore()

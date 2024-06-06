@@ -116,12 +116,24 @@
             :title="`Snooze: ${selectedTaskName}`"
             @ok="handleSnoozeTaskModalOk"
           >
-            <a-date-picker
-              show-time
-              placeholder="Select Time"
-              v-model:value="projectInputState.snooze_task_until"
-              style="width: 100%"
-            />
+            <br />
+            <a-form :model="projectInputState" layout="vertical">
+              <a-form-item label="Snooze Until:">
+                <a-date-picker
+                  show-time
+                  placeholder="Select Time"
+                  v-model:value="projectInputState.snooze_task_until"
+                  style="width: 100%"
+                />
+              </a-form-item>
+              <a-form-item label="Reason:">
+                <a-input
+                  v-model:value="projectInputState.snooze_task_reason"
+                  style="width: 100%"
+                  placeholder="Reason"
+                />
+              </a-form-item>
+            </a-form>
           </a-modal>
           <a-button key="6" type="primary" danger @click="onRemoveTask">
             <DeleteOutlined />
@@ -130,7 +142,7 @@
         </a-flex>
       </template>
       <template v-if="selectedTaskStatus == 'Snoozed'">
-        <a-alert :message="`Snoozed until: ${selectedTaskSnoozeUntilFormatted}`" type="success" />
+        <a-alert :message="selectedTaskSnoozeFormatted" type="success" />
         <br />
       </template>
       <a-textarea
@@ -659,11 +671,16 @@ const selectedTaskIssues = computed(() =>
   selectedTaskMeta.value ? selectedTaskMeta.value.issues : null
 )
 
-const selectedTaskSnoozeUntilFormatted = computed(() => {
+const selectedTaskSnoozeFormatted = computed(() => {
   const wake_after = selectedTaskMeta.value?.wake_after
+  const snooze_reason = selectedTaskMeta.value?.snooze_reason
   if (wake_after) {
-    const date_snooze = new Date(wake_after * 1000)
-    return date_snooze.toString()
+    const date_snooze = new Date(wake_after * 1000).toString()
+    if (snooze_reason) {
+      return 'Snoozed until: ' + date_snooze + ', Reason: ' + snooze_reason
+    } else {
+      return 'Snoozed until: ' + date_snooze
+    }
   }
   return null
 })
@@ -900,7 +917,8 @@ async function snoozeTask() {
       JSON.stringify({
         snooze_task: {
           uuid: projectInputState.selected_node,
-          snooze_until: projectInputState.snooze_task_until.unix()
+          snooze_until: projectInputState.snooze_task_until.unix(),
+          reason: projectInputState.snooze_task_reason
         }
       })
     ).then((response) => {

@@ -1,5 +1,7 @@
 <template>
-  <a-card title="Available Tasks">
+  <a-card
+    title="Available Tasks"
+  >
     <a-collapse v-model:activeKey="activeKey">
       <template
         v-for="(item, project_uuid) in projectListStore.projectListState.projects"
@@ -52,7 +54,6 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { CheckCircleOutlined, AimOutlined } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
-import type { Dayjs } from 'dayjs'
 import {
   useProjectListStore,
   useTaskListStore,
@@ -67,7 +68,7 @@ const taskListStore = useTaskListStore()
 const projectOperationInputStore = useProjectOperationInputStore()
 const projectInputState = projectOperationInputStore.projectWorkspaceInputState
 
-const activeKey = ref(['1'])
+const activeKey = ref([Object.keys(projectListStore.projectListState.projects)[0] ?? ''])
 
 const available_tasks_table_columns = [
   {

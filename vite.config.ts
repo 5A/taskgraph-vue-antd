@@ -16,6 +16,6 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 8080,
-    origin: 'http://app.taskgraph.org:8080'
+    origin: 'http://dev.taskgraph.org:8080'
   }
 })
