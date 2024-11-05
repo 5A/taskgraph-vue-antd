@@ -208,24 +208,6 @@
                 </template>
                 Edit
               </a-button>
-              <a-modal
-                v-model:open="editIssueModalOpen"
-                :title="`Edit Issue in task: ${selectedTaskName}`"
-                @ok="handleEditIssueModalOk"
-              >
-                <a-flex gap="small" vertical>
-                  <a-input
-                    v-model:value="projectInputState.edit_issue_title"
-                    style="width: 100%"
-                    placeholder="Title"
-                  />
-                  <a-input
-                    v-model:value="projectInputState.edit_issue_description"
-                    style="width: 100%"
-                    placeholder="Description"
-                  />
-                </a-flex>
-              </a-modal>
             </a-flex>
           </template>
         </template>
@@ -279,6 +261,24 @@
         </template>
       </a-table>
     </a-card>
+    <a-modal
+      v-model:open="editIssueModalOpen"
+      :title="`Edit Issue in task: ${selectedTaskName}`"
+      @ok="handleEditIssueModalOk"
+    >
+      <a-flex gap="small" vertical>
+        <a-input
+          v-model:value="projectInputState.edit_issue_title"
+          style="width: 100%"
+          placeholder="Title"
+        />
+        <a-input
+          v-model:value="projectInputState.edit_issue_description"
+          style="width: 100%"
+          placeholder="Description"
+        />
+      </a-flex>
+    </a-modal>
   </a-layout-content>
   <a-page-header
     class="project-page-header"
@@ -705,12 +705,12 @@ const selectedTaskMeta = computed(() => {
 })
 
 const selectedTaskName = computed(() =>
-  selectedTaskMeta.value ? selectedTaskMeta.value.name ?? 'No Name Available' : 'No Task Selected'
+  selectedTaskMeta.value ? (selectedTaskMeta.value.name ?? 'No Name Available') : 'No Task Selected'
 )
 
 const selectedTaskDetail = computed(() =>
   selectedTaskMeta.value
-    ? selectedTaskMeta.value.detail ?? 'No Detail Available'
+    ? (selectedTaskMeta.value.detail ?? 'No Detail Available')
     : 'No Detail Available'
 )
 
