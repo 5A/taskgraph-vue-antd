@@ -186,12 +186,38 @@
       <a-table :columns="issue_columns" :data-source="issue_data_source.open" bordered>
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-button key="1" type="primary" @click="onCloseIssue(record.key)">
-              <template #icon>
-                <CheckOutlined />
-              </template>
-              Close
-            </a-button>
+            <a-flex gap="small" horizontal>
+              <a-button key="1" type="primary" @click="onCloseIssue(record.key)">
+                <template #icon>
+                  <IssuesCloseOutlined />
+                </template>
+                Close
+              </a-button>
+              <a-button key="2" @click="showEditIssueModal(record.key)">
+                <template #icon>
+                  <EditOutlined />
+                </template>
+                Edit
+              </a-button>
+              <a-modal
+                v-model:open="editIssueModalOpen"
+                :title="`Edit Issue in task: ${selectedTaskName}`"
+                @ok="handleEditIssueModalOk"
+              >
+                <a-flex gap="small" vertical>
+                  <a-input
+                    v-model:value="projectInputState.edit_issue_title"
+                    style="width: 100%"
+                    placeholder="Title"
+                  />
+                  <a-input
+                    v-model:value="projectInputState.edit_issue_description"
+                    style="width: 100%"
+                    placeholder="Description"
+                  />
+                </a-flex>
+              </a-modal>
+            </a-flex>
           </template>
         </template>
         <template #footer>
@@ -220,12 +246,26 @@
       <a-table :columns="issue_columns" :data-source="issue_data_source.closed" bordered>
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'operation'">
-            <a-button key="1" type="primary" danger @click="onDeleteIssue(record.key)">
-              <template #icon>
-                <DeleteOutlined />
-              </template>
-              Delete
-            </a-button>
+            <a-flex gap="small" horizontal>
+              <a-button key="1" @click="showEditIssueModal(record.key)">
+                <template #icon>
+                  <EditOutlined />
+                </template>
+                Edit
+              </a-button>
+              <a-button key="2" type="primary" @click="onReopenIssue(record.key)">
+                <template #icon>
+                  <InfoCircleOutlined />
+                </template>
+                Re-open
+              </a-button>
+              <a-button key="3" type="primary" danger @click="onDeleteIssue(record.key)">
+                <template #icon>
+                  <DeleteOutlined />
+                </template>
+                Delete
+              </a-button>
+            </a-flex>
           </template>
         </template>
       </a-table>
@@ -290,7 +330,9 @@ import {
   DeleteOutlined,
   SyncOutlined,
   PlusCircleOutlined,
-  PauseCircleOutlined
+  PauseCircleOutlined,
+  InfoCircleOutlined,
+  IssuesCloseOutlined
 } from '@ant-design/icons-vue'
 // Graph plotting
 import cytoscape from 'cytoscape'
@@ -998,6 +1040,36 @@ const handleNewIssueModalOk = (_e: MouseEvent) => {
   newIssueModalOpen.value = false
 }
 
+const editIssueModalOpen = ref<boolean>(false)
+
+const showEditIssueModal = (issue_editing: string) => {
+  if (projectInputState.selected_node) {
+    projectInputState.issue_editing = issue_editing
+    if (selectedTaskIssues.value) {
+      projectInputState.edit_issue_title = selectedTaskIssues.value[issue_editing].title
+      projectInputState.edit_issue_description =
+        selectedTaskIssues.value[issue_editing].description ?? ''
+    }
+    editIssueModalOpen.value = true
+  } else {
+    message.error(
+      'Please select a task before the operation \
+      (click a task in the DAG View to select it)'
+    )
+  }
+}
+
+const handleEditIssueModalOk = (_e: MouseEvent) => {
+  if (projectInputState.issue_editing) {
+    onModifyIssue(
+      projectInputState.issue_editing,
+      projectInputState.edit_issue_title,
+      projectInputState.edit_issue_description
+    )
+  }
+  editIssueModalOpen.value = false
+}
+
 const issue_data_source = computed(() => {
   if (selectedTaskIssues.value) {
     let dataSourceOpen = []
@@ -1091,6 +1163,67 @@ async function onCloseIssue(issue_uuid: string) {
     ).then((response) => {
       if (response?.result == 'OK') {
         message.warning('Issue closed')
+      }
+    })
+  } else {
+    message.error(
+      'Please select a task before the operation \
+      (click a task in the DAG View to select it)'
+    )
+  }
+  // because issue operations do not change task topology, no need to re-render cytoscape,
+  // just read back from API server to confirm changes.
+  if (projectUUID.value) await readProject(projectUUID.value)
+}
+
+async function onModifyIssue(
+  issue_uuid: string,
+  edit_issue_title: string,
+  edit_issue_description: string
+) {
+  if (projectInputState.selected_node) {
+    await callRESTfulAPI(
+      `projects/${projectUUID.value}`,
+      'POST',
+      JSON.stringify({
+        modify_issue: {
+          task_uuid: projectInputState.selected_node,
+          issue_uuid: issue_uuid,
+          title: edit_issue_title,
+          description: edit_issue_description
+        }
+      })
+    ).then((response) => {
+      if (response?.result == 'OK') {
+        message.warning('Issue modified')
+      }
+    })
+  } else {
+    message.error(
+      'Please select a task before the operation \
+      (click a task in the DAG View to select it)'
+    )
+  }
+  // because issue operations do not change task topology, no need to re-render cytoscape,
+  // just read back from API server to confirm changes.
+  if (projectUUID.value) await readProject(projectUUID.value)
+}
+
+
+async function onReopenIssue(issue_uuid: string) {
+  if (projectInputState.selected_node) {
+    await callRESTfulAPI(
+      `projects/${projectUUID.value}`,
+      'POST',
+      JSON.stringify({
+        reopen_issue: {
+          task_uuid: projectInputState.selected_node,
+          issue_uuid: issue_uuid
+        }
+      })
+    ).then((response) => {
+      if (response?.result == 'OK') {
+        message.warning('Issue re-opened')
       }
     })
   } else {

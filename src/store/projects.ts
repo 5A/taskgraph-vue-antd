@@ -84,6 +84,9 @@ export interface ProjectWorkspaceInputState {
   snooze_task_reason: string
   new_issue_title: string
   new_issue_description: string
+  issue_editing: string | null
+  edit_issue_title: string
+  edit_issue_description: string
 }
 
 // This store is for project operation inputs
@@ -110,7 +113,10 @@ export const useProjectOperationInputStore = defineStore(
       snooze_task_until: null,
       snooze_task_reason: '',
       new_issue_title: '',
-      new_issue_description: ''
+      new_issue_description: '',
+      issue_editing: null,
+      edit_issue_title: '',
+      edit_issue_description: ''
     })
     return {
       newProjectInputState,
