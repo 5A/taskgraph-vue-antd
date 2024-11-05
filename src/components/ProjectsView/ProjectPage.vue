@@ -82,13 +82,19 @@
     <br />
     <a-card :title="`Task: ${selectedTaskName}`" style="width: 100%">
       <template #extra>
-        <a-flex gap="small">
+        <a-flex gap="small" align="center">
           <a-input
             v-if="isEditingTaskInDetailView"
             key="1"
             v-model:value="projectInputState.edit_task_name"
             style="width: 100%"
             placeholder="New Title"
+          />
+          <a-switch
+            v-if="!isEditingTaskInDetailView"
+            v-model:checked="enableMarkdownInTaskDetailView"
+            checked-children="MD↓"
+            un-checked-children="TXT"
           />
           <a-button v-if="!isEditingTaskInDetailView" key="2" @click="onEditTaskInDetailView">
             <EditOutlined />
@@ -152,7 +158,10 @@
         placeholder="Detail"
         :rows="20"
       />
-      <p v-else style="white-space: pre-wrap">{{ selectedTaskDetail }}</p>
+      <template v-else>
+        <MarkdownRenderer v-if="enableMarkdownInTaskDetailView" :source="selectedTaskDetail" />
+        <p v-else style="white-space: pre-wrap">{{ selectedTaskDetail }}</p>
+      </template>
     </a-card>
     <br />
     <a-card title="Issues" style="width: 100%">
@@ -324,7 +333,6 @@ import { message } from 'ant-design-vue'
 import type { SelectProps } from 'ant-design-vue'
 import {
   CheckCircleOutlined,
-  CheckOutlined,
   EditOutlined,
   SaveOutlined,
   DeleteOutlined,
@@ -345,6 +353,7 @@ import {
 } from '@/store/projects'
 import { callRESTfulAPI } from '@/common/connection'
 import { type TaskGraphProjectData } from '@/store/projects'
+import MarkdownRenderer from './Project/MarkdownRenderer.vue'
 
 cytoscape.use(dagre)
 
@@ -735,6 +744,8 @@ async function onResetDAGView() {
   cytoscapeInstance.value?.reset()
 }
 
+// =========== Task Toolbox stuff ===========
+
 async function onAddOrModifyTask() {
   if (projectInputState.task_toolbox_location_select === 'sub') {
     await onAddSubTask()
@@ -832,56 +843,6 @@ async function onClearNewTaskInput() {
   projectInputState.add_new_task_name = ''
 }
 
-async function onSetTaskDone() {
-  if (projectInputState.selected_node) {
-    await callRESTfulAPI(
-      `projects/${projectUUID.value}`,
-      'POST',
-      JSON.stringify({
-        update_task_status: {
-          uuid: projectInputState.selected_node,
-          status: 'Done'
-        }
-      })
-    ).then((response) => {
-      if (response?.result == 'OK') {
-        message.info('Task marked as done')
-      }
-    })
-  } else {
-    message.error(
-      'Please select a task before the operation \
-      (click a task in the DAG View to select it)'
-    )
-  }
-  if (projectUUID.value) await readProject(projectUUID.value).then(() => initCytoscape())
-}
-
-async function onRemoveTask() {
-  if (projectInputState.selected_node) {
-    await callRESTfulAPI(
-      `projects/${projectUUID.value}`,
-      'POST',
-      JSON.stringify({
-        remove_task: {
-          uuid: projectInputState.selected_node
-        }
-      })
-    ).then((response) => {
-      if (response?.result == 'OK') {
-        message.warning('Task removed')
-      }
-    })
-  } else {
-    message.error(
-      'Please select a task before the operation \
-      (click a task in the DAG View to select it)'
-    )
-  }
-  projectInputState.selected_node = null
-  if (projectUUID.value) await readProject(projectUUID.value).then(() => initCytoscape())
-}
-
 async function onAddDependencies() {
   if (projectInputState.selected_node && projectInputState.add_dependency_selected_nodes) {
     await callRESTfulAPI(
@@ -937,6 +898,60 @@ async function onRemoveDependency() {
     )
   }
   projectInputState.selected_edge = null
+  if (projectUUID.value) await readProject(projectUUID.value).then(() => initCytoscape())
+}
+
+// ========= Detail View stuff ===============
+
+const enableMarkdownInTaskDetailView = ref<boolean>(false)
+
+async function onSetTaskDone() {
+  if (projectInputState.selected_node) {
+    await callRESTfulAPI(
+      `projects/${projectUUID.value}`,
+      'POST',
+      JSON.stringify({
+        update_task_status: {
+          uuid: projectInputState.selected_node,
+          status: 'Done'
+        }
+      })
+    ).then((response) => {
+      if (response?.result == 'OK') {
+        message.info('Task marked as done')
+      }
+    })
+  } else {
+    message.error(
+      'Please select a task before the operation \
+      (click a task in the DAG View to select it)'
+    )
+  }
+  if (projectUUID.value) await readProject(projectUUID.value).then(() => initCytoscape())
+}
+
+async function onRemoveTask() {
+  if (projectInputState.selected_node) {
+    await callRESTfulAPI(
+      `projects/${projectUUID.value}`,
+      'POST',
+      JSON.stringify({
+        remove_task: {
+          uuid: projectInputState.selected_node
+        }
+      })
+    ).then((response) => {
+      if (response?.result == 'OK') {
+        message.warning('Task removed')
+      }
+    })
+  } else {
+    message.error(
+      'Please select a task before the operation \
+      (click a task in the DAG View to select it)'
+    )
+  }
+  projectInputState.selected_node = null
   if (projectUUID.value) await readProject(projectUUID.value).then(() => initCytoscape())
 }
 
@@ -1021,6 +1036,8 @@ async function onSaveTaskInDetailView() {
   }
   if (projectUUID.value) await readProject(projectUUID.value).then(() => initCytoscape())
 }
+
+// =========== Issues Related ===========
 
 const newIssueModalOpen = ref<boolean>(false)
 
@@ -1208,7 +1225,6 @@ async function onModifyIssue(
   // just read back from API server to confirm changes.
   if (projectUUID.value) await readProject(projectUUID.value)
 }
-
 
 async function onReopenIssue(issue_uuid: string) {
   if (projectInputState.selected_node) {
