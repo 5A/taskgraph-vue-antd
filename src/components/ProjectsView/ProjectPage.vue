@@ -208,6 +208,12 @@
                 </template>
                 Edit
               </a-button>
+              <a-button danger key="3" @click="onRaiseIssue(record.key)">
+                <template #icon>
+                  <NodeExpandOutlined />
+                </template>
+                Raise
+              </a-button>
             </a-flex>
           </template>
         </template>
@@ -248,7 +254,7 @@
                 <template #icon>
                   <InfoCircleOutlined />
                 </template>
-                Re-open
+                Open
               </a-button>
               <a-button key="3" type="primary" danger @click="onDeleteIssue(record.key)">
                 <template #icon>
@@ -340,7 +346,8 @@ import {
   PlusCircleOutlined,
   PauseCircleOutlined,
   InfoCircleOutlined,
-  IssuesCloseOutlined
+  IssuesCloseOutlined,
+  NodeExpandOutlined
 } from '@ant-design/icons-vue'
 // Graph plotting
 import cytoscape from 'cytoscape'
@@ -1278,6 +1285,31 @@ async function onDeleteIssue(issue_uuid: string) {
   // because issue operations do not change task topology, no need to re-render cytoscape,
   // just read back from API server to confirm changes.
   if (projectUUID.value) await readProject(projectUUID.value)
+}
+
+async function onRaiseIssue(issue_uuid: string) {
+  if (projectInputState.selected_node) {
+    await callRESTfulAPI(
+      `projects/${projectUUID.value}`,
+      'POST',
+      JSON.stringify({
+        raise_issue: {
+          task_uuid: projectInputState.selected_node,
+          issue_uuid: issue_uuid
+        }
+      })
+    ).then((response) => {
+      if (response?.result == 'OK') {
+        message.warning('Issue raised to sub-task')
+      }
+    })
+  } else {
+    message.error(
+      'Please select a task before the operation \
+      (click a task in the DAG View to select it)'
+    )
+  }
+  if (projectUUID.value) await readProject(projectUUID.value).then(() => initCytoscape())
 }
 </script>
 
