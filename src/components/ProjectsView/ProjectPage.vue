@@ -240,7 +240,7 @@
     </a-card>
     <br />
     <a-card title="Closed Issues" style="width: 100%">
-      <a-table :columns="issue_columns" :data-source="issue_data_source.closed" bordered>
+      <a-table :columns="closed_issue_columns" :data-source="issue_data_source.closed" bordered>
         <template #bodyCell="{ column, record }">
           <template v-if="column.dataIndex === 'operation'">
             <a-flex gap="small" horizontal>
@@ -1099,16 +1099,27 @@ const issue_data_source = computed(() => {
     let dataSourceOpen = []
     let dataSourceClosed = []
     for (const item in selectedTaskIssues.value) {
-      if ('Open' == selectedTaskIssues.value[item].status) {
+      const current_issue = selectedTaskIssues.value[item]
+      const date_last_modify = current_issue.last_modify
+        ? new Date(current_issue.last_modify * 1000).toLocaleString()
+        : '-'
+      const date_close = current_issue.time_close
+        ? new Date(current_issue.time_close * 1000).toLocaleString()
+        : '-'
+      if ('Open' == current_issue.status) {
         dataSourceOpen.push({
-          title: selectedTaskIssues.value[item].title,
-          description: selectedTaskIssues.value[item].description,
+          title: current_issue.title,
+          description: current_issue.description,
+          last_modified: date_last_modify,
+          time_closed: date_close,
           key: item
         })
       } else {
         dataSourceClosed.push({
-          title: selectedTaskIssues.value[item].title,
-          description: selectedTaskIssues.value[item].description,
+          title: current_issue.title,
+          description: current_issue.description,
+          last_modified: date_last_modify,
+          time_closed: date_close,
           key: item
         })
       }
@@ -1134,6 +1145,39 @@ const issue_columns = [
     title: 'Description',
     dataIndex: 'description',
     key: 'description'
+  },
+  {
+    title: 'Last Modified',
+    dataIndex: 'last_modified',
+    key: 'last_modified'
+  },
+  {
+    title: 'Operation',
+    dataIndex: 'operation',
+    key: 'operation'
+  }
+]
+
+const closed_issue_columns = [
+  {
+    title: 'Title',
+    dataIndex: 'title',
+    key: 'title'
+  },
+  {
+    title: 'Description',
+    dataIndex: 'description',
+    key: 'description'
+  },
+  {
+    title: 'Last Modified',
+    dataIndex: 'last_modified',
+    key: 'last_modified'
+  },
+  {
+    title: 'Time Closed',
+    dataIndex: 'time_closed',
+    key: 'time_closed'
   },
   {
     title: 'Operation',

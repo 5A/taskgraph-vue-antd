@@ -146,6 +146,8 @@ export interface TaskGraphIssue {
   description: string | null
   labels: Array<string> | null
   close_reason: string | null
+  time_close: number | null
+  last_modify: number | null
 }
 
 export interface TaskGraphTaskMetadataItem {
