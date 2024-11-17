@@ -146,8 +146,8 @@ export interface TaskGraphIssue {
   description: string | null
   labels: Array<string> | null
   close_reason: string | null
-  time_close: number | null
-  last_modify: number | null
+  time_close: number | null // Timestamp, unit in seconds
+  last_modify: number | null // Timestamp, unit in seconds
 }
 
 export interface TaskGraphTaskMetadataItem {
@@ -155,9 +155,11 @@ export interface TaskGraphTaskMetadataItem {
   name: string | null
   detail: string | null
   status: string | null
-  wake_after: number | null
+  wake_after: number | null // Timestamp, unit in seconds
   snooze_reason: string | null
-  remind_after: number | null
+  remind_after: number | null // Timestamp, unit in seconds
+  last_modify: number | null // Timestamp, unit in seconds
+  time_done: number | null // Timestamp, unit in seconds
   issues: Record<string, TaskGraphIssue> | null
 }
 

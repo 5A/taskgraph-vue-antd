@@ -151,6 +151,10 @@
         <a-alert :message="selectedTaskSnoozeFormatted" type="success" />
         <br />
       </template>
+      <template v-else-if="selectedTaskStatus == 'Done'">
+        <a-alert :message="selectedTaskDoneMessageFormatted" type="success" />
+        <br />
+      </template>
       <a-textarea
         v-if="isEditingTaskInDetailView"
         v-model:value="projectInputState.edit_task_detail"
@@ -162,6 +166,9 @@
         <MarkdownRenderer v-if="enableMarkdownInTaskDetailView" :source="selectedTaskDetail" />
         <p v-else style="white-space: pre-wrap">{{ selectedTaskDetail }}</p>
       </template>
+      <a-flex justify="flex-end">
+        <p style="color: lightslategray">Last Modified: {{ selectedTaskLastModify }}</p>
+      </a-flex>
     </a-card>
     <br />
     <a-card title="Issues" style="width: 100%">
@@ -721,6 +728,22 @@ const selectedTaskDetail = computed(() =>
     : 'No Detail Available'
 )
 
+const selectedTaskLastModify = computed(() =>
+  selectedTaskMeta.value
+    ? selectedTaskMeta.value.last_modify
+      ? new Date(selectedTaskMeta.value.last_modify * 1000).toString()
+      : '-'
+    : '-'
+)
+
+const selectedTaskTimeDone = computed(() =>
+  selectedTaskMeta.value
+    ? selectedTaskMeta.value.time_done
+      ? new Date(selectedTaskMeta.value.time_done * 1000).toString()
+      : '-'
+    : '-'
+)
+
 const selectedTaskStatus = computed(() =>
   selectedTaskMeta.value ? selectedTaskMeta.value.status : null
 )
@@ -741,6 +764,10 @@ const selectedTaskSnoozeFormatted = computed(() => {
     }
   }
   return null
+})
+
+const selectedTaskDoneMessageFormatted = computed(() => {
+  return 'Task done: ' + selectedTaskTimeDone.value
 })
 
 async function handleCytoscapeLayoutSelectChange() {
